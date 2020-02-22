@@ -6,7 +6,7 @@ import pyspark.sql.functions as psf
 
 
 # TODO Create a schema for incoming resources
-schema = StructTypeStructType([
+schema = StructType([
     StructField("crime_id", StringType(), True),                
     StructField("original_crime_type_name", StringType(), False),
     StructField("report_date", StringType(), True),             
@@ -30,10 +30,10 @@ def run_spark_job(spark):
     # set up correct bootstrap server and port
     df = spark \
         .readStream \
-
+    
     # Show schema for the incoming resources for checks
     df.printSchema()
-
+'''
     # TODO extract the correct column from the kafka input resources
     # Take only value and convert it to String
     kafka_df = df.selectExpr("")
@@ -71,7 +71,7 @@ def run_spark_job(spark):
 
 
     join_query.awaitTermination()
-
+'''
 
 if __name__ == "__main__":
     logger = logging.getLogger(__name__)
