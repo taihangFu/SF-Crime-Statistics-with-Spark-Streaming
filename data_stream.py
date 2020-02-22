@@ -40,29 +40,40 @@ def run_spark_job(spark):
 
     # Show schema for the incoming resources for checks
     df.printSchema()
-'''
+
     # TODO extract the correct column from the kafka input resources
     # Take only value and convert it to String
-    kafka_df = df.selectExpr("")
+    kafka_df = df.selectExpr("CAST(value AS STRING)")
 
     service_table = kafka_df\
         .select(psf.from_json(psf.col('value'), schema).alias("DF"))\
         .select("DF.*")
 
     # TODO select original_crime_type_name and disposition
-    distinct_table = 
+    distinct_table = service_table \
+        .select('original_crime_type_name','disposition', "call_date_time")\
+        .distinct()
 
     # count the number of original crime type
-    agg_df = 
+    agg_df = distinct_table\
+        .select("original_crime_type_name", "call_date_time")\
+        .withWatermark("call_date_time", '60 minutes')\
+        .groupBy("original_crime_type_name")\
+        .count()\
 
     # TODO Q1. Submit a screen shot of a batch ingestion of the aggregation
     # TODO write output stream
-    query = agg_df \
+    query = agg_df\
+        .writeStream\
+        .format("console")\
+        .outputMode("Update")\
+        .trigger(processingTime="30 seconds")\
+        .start()
 
 
     # TODO attach a ProgressReporter
     query.awaitTermination()
-
+'''
     # TODO get the right radio code json path
     radio_code_json_filepath = ""
     radio_code_df = spark.read.json(radio_code_json_filepath)
