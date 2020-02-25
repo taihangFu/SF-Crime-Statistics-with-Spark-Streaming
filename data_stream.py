@@ -36,6 +36,7 @@ def run_spark_job(spark):
         .option("startingOffsets", "earliest") \
         .option("maxOffsetsPerTrigger", 200) \
         .option("stopGracefullyOnShutdown", "true") \
+        .option("maxRatePerPartition", 200) \
         .load()
 
     # Show schema for the incoming resources for checks
@@ -58,7 +59,7 @@ def run_spark_job(spark):
     agg_df = distinct_table\
         .select("original_crime_type_name", "call_date_time")\
         .withWatermark("call_date_time", '60 minutes')\
-        .groupBy("original_crime_type_name")\
+        .groupBy(psf.col("original_crime_type_name"))\
         .count()\
 
     # TODO Q1. Submit a screen shot of a batch ingestion of the aggregation
@@ -66,14 +67,14 @@ def run_spark_job(spark):
     query = agg_df\
         .writeStream\
         .format("console")\
-        .outputMode("Update")\
-        .trigger(processingTime="30 seconds")\
+        .outputMode("complete")\
+        .trigger(processingTime="10 seconds")\
         .start()
 
 
     # TODO attach a ProgressReporter
     query.awaitTermination()
-'''
+
     # TODO get the right radio code json path
     radio_code_json_filepath = ""
     radio_code_df = spark.read.json(radio_code_json_filepath)
@@ -85,11 +86,10 @@ def run_spark_job(spark):
     radio_code_df = radio_code_df.withColumnRenamed("disposition_code", "disposition")
 
     # TODO join on disposition column
-    join_query = agg_df.
-
+    join_query = agg_df \
 
     join_query.awaitTermination()
-'''
+
 
 if __name__ == "__main__":
     logger = logging.getLogger(__name__)
@@ -100,7 +100,9 @@ if __name__ == "__main__":
         .master("local[*]") \
         .appName("KafkaSparkStructuredStreaming") \
         .getOrCreate()
-
+        
+    spark.conf.set("spark.sql.shuffle.partitions",2)
+    
     logger.info("Spark started")
 
     run_spark_job(spark)
