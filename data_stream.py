@@ -99,6 +99,7 @@ if __name__ == "__main__":
         .builder \
         .master("local[*]") \
         .appName("KafkaSparkStructuredStreaming") \
+        .config("spark.ui.port", 3000)\
         .getOrCreate()
         
     spark.conf.set("spark.sql.shuffle.partitions",2)
