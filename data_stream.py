@@ -76,7 +76,7 @@ def run_spark_job(spark):
     query.awaitTermination()
 
     # TODO get the right radio code json path
-    radio_code_json_filepath = ""
+    radio_code_json_filepath = "./radio_code.json"
     radio_code_df = spark.read.json(radio_code_json_filepath)
 
     # clean up your data so that the column names match on radio_code_df and agg_df
@@ -86,7 +86,7 @@ def run_spark_job(spark):
     radio_code_df = radio_code_df.withColumnRenamed("disposition_code", "disposition")
 
     # TODO join on disposition column
-    join_query = agg_df \
+    join_query = agg_df.join(radio_code_df, agg_df.disposition == radio_code_df.disposition, how="left")
 
     join_query.awaitTermination()
 
