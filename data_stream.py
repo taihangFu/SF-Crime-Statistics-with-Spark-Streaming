@@ -59,7 +59,7 @@ def run_spark_job(spark):
     agg_df = distinct_table\
         .select("original_crime_type_name", "call_date_time")\
         .withWatermark("call_date_time", '60 minutes')\
-        .groupBy(psf.col("original_crime_type_name"))\
+        .groupBy(psf.window(distinct_table.call_date_time, "10 minutes", "5 minutes"), psf.col("original_crime_type_name"))\
         .count()\
 
     # TODO Q1. Submit a screen shot of a batch ingestion of the aggregation
